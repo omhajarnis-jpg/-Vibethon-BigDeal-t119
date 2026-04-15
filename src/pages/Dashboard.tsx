@@ -1,6 +1,6 @@
 import { LayoutDashboard, BookOpen, HelpCircle, Trophy, Star, Gamepad2, AlertTriangle, RotateCcw, FlaskConical, Code2 } from "lucide-react";
 import { motion } from "framer-motion";
-import shizukaImg from "@/assets/shizuka.png";
+import CharacterFeedback from "@/components/CharacterFeedback";
 import { useProgress } from "@/hooks/use-progress";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -19,19 +19,19 @@ const Dashboard = () => {
   const overallPct = Math.round((modulesPct + quizPct + gamePct + simPct) / 4);
 
   const stats = [
-    { label: "Modules Completed", value: `${modulesCompleted} / ${TOTAL_MODULES}`, pct: modulesPct, icon: BookOpen },
-    { label: "Quiz Score", value: progress.quizCompleted ? `${progress.quizScore} / ${progress.quizTotal}` : "Not attempted", pct: quizPct, icon: HelpCircle },
-    { label: "Games Played", value: progress.gameCompleted ? `${progress.gamesPlayed} games` : "Not played", pct: gamePct, icon: Gamepad2 },
-    { label: "Simulation", value: progress.simulationCompleted ? "Completed" : "Not started", pct: simPct, icon: FlaskConical },
+    { label: "Modules Completed", value: `${modulesCompleted} / ${TOTAL_MODULES}`, pct: modulesPct, icon: BookOpen, color: "text-primary" },
+    { label: "Quiz Score", value: progress.quizCompleted ? `${progress.quizScore} / ${progress.quizTotal}` : "Not attempted", pct: quizPct, icon: HelpCircle, color: "text-secondary" },
+    { label: "Games Played", value: progress.gameCompleted ? `${progress.gamesPlayed} games` : "Not played", pct: gamePct, icon: Gamepad2, color: "text-green-500" },
+    { label: "Simulation", value: progress.simulationCompleted ? "Completed" : "Not started", pct: simPct, icon: FlaskConical, color: "text-purple-500" },
   ];
 
   const badges = [
-    { label: "First Lesson", icon: BookOpen, earned: modulesCompleted >= 1 },
-    { label: "Quiz Master", icon: HelpCircle, earned: progress.quizCompleted && progress.quizScore >= 3 },
-    { label: "Game Champion", icon: Gamepad2, earned: progress.gameCompleted },
-    { label: "AI Fixer", icon: AlertTriangle, earned: progress.simulationCompleted },
-    { label: "Code Runner", icon: Code2, earned: modulesCompleted >= 2 },
-    { label: "AI Champion", icon: Trophy, earned: modulesCompleted >= TOTAL_MODULES && progress.quizCompleted && progress.gameCompleted && progress.simulationCompleted },
+    { label: "First Lesson", icon: BookOpen, earned: modulesCompleted >= 1, color: "bg-primary text-white" },
+    { label: "Quiz Master", icon: HelpCircle, earned: progress.quizCompleted && progress.quizScore >= 3, color: "bg-secondary text-primary" },
+    { label: "Game Champion", icon: Gamepad2, earned: progress.gameCompleted, color: "bg-green-500 text-white" },
+    { label: "AI Fixer", icon: AlertTriangle, earned: progress.simulationCompleted, color: "bg-purple-500 text-white" },
+    { label: "Code Runner", icon: Code2, earned: modulesCompleted >= 2, color: "bg-orange-500 text-white" },
+    { label: "AI Champion", icon: Trophy, earned: modulesCompleted >= TOTAL_MODULES && progress.quizCompleted && progress.gameCompleted && progress.simulationCompleted, color: "bg-gradient-to-tr from-secondary to-orange-400 text-white" },
   ];
 
   const getMessage = () => {
@@ -43,68 +43,72 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen">
-      <div className="container mx-auto px-4 py-10 max-w-4xl">
-        <h1 className="font-heading text-3xl font-black text-center mb-2">
-          <LayoutDashboard className="inline mr-2 text-primary" size={28} />
+    <div className="min-h-screen py-10 relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute top-0 right-0 w-80 h-80 bg-white/60 rounded-full blur-3xl -z-10" />
+      <div className="absolute bottom-10 left-10 w-64 h-64 bg-secondary/10 rounded-full blur-3xl -z-10" />
+
+      <div className="container mx-auto px-4 max-w-4xl relative z-10">
+        <h1 className="font-heading text-4xl mb-3 font-black text-center text-primary drop-shadow-sm">
+          <LayoutDashboard className="inline mr-3 -translate-y-1" size={40} />
           Progress Dashboard
         </h1>
-        <p className="text-center text-muted-foreground mb-8 font-semibold">
-          {currentUser ? `Welcome, ${currentUser.name}!` : "Track your AI learning journey"}
+        <p className="text-center text-primary/70 mb-10 font-bold text-lg">
+          {currentUser ? `Welcome back, ${currentUser.name}!` : "Track your AI learning journey"}
         </p>
 
         {/* Shizuka message */}
-        <div className="flex items-start gap-3 mb-8">
-          <img src={shizukaImg} alt="Shizuka" className="w-16 h-16 object-contain animate-bounce-gentle flex-shrink-0" />
-          <div className="bg-doraemon-light-blue border border-primary/20 rounded-2xl rounded-bl-none px-4 py-3 text-sm font-semibold max-w-md">
-            {getMessage()}
-          </div>
+        <div className="mb-10 flex justify-center">
+          <CharacterFeedback 
+            character="shizuka" 
+            message={getMessage()} 
+            className="transform scale-110"
+          />
         </div>
 
         {/* Overall progress */}
         <motion.div
-          className="bg-card rounded-2xl border border-border p-6 shadow-sm mb-6"
+          className="bg-white rounded-3xl border-4 border-primary/10 p-8 shadow-xl mb-8 relative overflow-hidden"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <h2 className="font-heading text-lg font-bold mb-3">Overall Progress</h2>
-          <div className="flex items-center gap-4">
-            <div className="flex-1">
-              <div className="w-full h-5 bg-muted rounded-full overflow-hidden">
-                <motion.div
-                  className="h-full bg-gradient-to-r from-primary to-doraemon-yellow rounded-full"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${overallPct}%` }}
-                  transition={{ duration: 0.8, ease: "easeOut" }}
-                />
-              </div>
-            </div>
-            <span className="font-black text-xl text-primary">{overallPct}%</span>
+          <div className="absolute -right-10 -top-10 w-32 h-32 bg-secondary/20 rounded-full blur-2xl" />
+          <h2 className="font-heading text-2xl font-black mb-6 flex items-center justify-between">
+            <span>Overall Progress</span>
+            <span className="text-secondary drop-shadow-sm font-black text-3xl">{overallPct}%</span>
+          </h2>
+          <div className="w-full h-6 bg-muted rounded-full overflow-hidden border-2 border-primary/10 shadow-inner">
+            <motion.div
+              className="h-full bg-gradient-to-r from-primary to-secondary rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${overallPct}%` }}
+              transition={{ duration: 1, ease: "easeOut" }}
+            />
           </div>
         </motion.div>
 
         {/* Stats grid */}
-        <div className="grid sm:grid-cols-2 gap-4 mb-6">
+        <div className="grid sm:grid-cols-2 gap-5 mb-8">
           {stats.map((s, i) => (
             <motion.div
               key={s.label}
-              className="bg-card rounded-2xl border border-border p-5 shadow-sm"
+              className="bg-white rounded-3xl border-4 border-primary/10 p-6 shadow-md hover:shadow-lg transition-shadow"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 * i }}
             >
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-semibold text-muted-foreground flex items-center gap-1.5">
-                  <s.icon size={14} /> {s.label}
+              <div className="flex justify-between items-center mb-4">
+                <span className={`text-sm font-black uppercase tracking-wider flex items-center gap-2 ${s.color}`}>
+                  <s.icon size={18} /> {s.label}
                 </span>
-                <span className="font-bold text-foreground">{s.value}</span>
+                <span className="font-black text-xl text-foreground bg-gray-50 px-3 py-1 rounded-xl border border-border">{s.value}</span>
               </div>
-              <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden">
+              <div className="w-full h-3 bg-muted rounded-full overflow-hidden border border-border shadow-inner">
                 <motion.div
-                  className="h-full bg-primary rounded-full"
+                  className={`h-full rounded-full ${s.pct === 100 ? 'bg-success' : 'bg-primary'}`}
                   initial={{ width: 0 }}
                   animate={{ width: `${s.pct}%` }}
-                  transition={{ duration: 0.6, delay: 0.1 * i, ease: "easeOut" }}
+                  transition={{ duration: 0.8, delay: 0.2 + (0.1 * i), ease: "easeOut" }}
                 />
               </div>
             </motion.div>
@@ -113,24 +117,25 @@ const Dashboard = () => {
 
         {/* Badges */}
         <motion.div
-          className="bg-card rounded-2xl border border-border p-6 shadow-sm mb-6"
+          className="bg-white rounded-3xl border-4 border-primary/10 p-8 shadow-xl mb-10 text-center sm:text-left"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.4 }}
         >
-          <h2 className="font-heading text-lg font-bold mb-4 flex items-center gap-2">
-            <Star className="text-doraemon-yellow" size={20} /> Achievement Badges
+          <h2 className="font-heading text-2xl font-black mb-6 flex items-center justify-center sm:justify-start gap-3">
+            <Star className="text-secondary fill-secondary" size={28} /> 
+            Achievement Badges
           </h2>
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap justify-center sm:justify-start gap-4">
             {badges.map((b) => (
               <div
                 key={b.label}
-                className={`flex flex-col items-center gap-1.5 w-20 text-center transition-all ${!b.earned ? "opacity-30 grayscale" : ""}`}
+                className={`flex flex-col items-center gap-2 w-[5.5rem] transition-all transform hover:scale-105 ${!b.earned ? "opacity-40 grayscale hover:grayscale-0" : ""}`}
               >
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${b.earned ? "bg-doraemon-yellow" : "bg-muted"}`}>
-                  <b.icon size={24} className={b.earned ? "text-secondary-foreground" : "text-muted-foreground"} />
+                <div className={`w-16 h-16 rounded-3xl flex items-center justify-center shadow-sm border-2 ${b.earned ? `${b.color} border-transparent` : "bg-muted border-border text-muted-foreground"}`}>
+                  <b.icon size={28} />
                 </div>
-                <span className="text-xs font-bold">{b.label}</span>
+                <span className="text-xs font-black text-center leading-tight">{b.label}</span>
               </div>
             ))}
           </div>
@@ -140,9 +145,9 @@ const Dashboard = () => {
         <div className="text-center">
           <button
             onClick={resetProgress}
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-accent font-semibold transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 text-sm font-bold bg-white text-destructive border-2 border-destructive/20 hover:bg-destructive hover:text-white rounded-2xl transition-all shadow-sm"
           >
-            <RotateCcw size={14} /> Reset All Progress
+            <RotateCcw size={16} /> Reset All Progress
           </button>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Code2, Play, RotateCcw, Copy, Check } from "lucide-react";
 import { motion } from "framer-motion";
-import MentorBubble from "@/components/MentorBubble";
+import CharacterFeedback from "@/components/CharacterFeedback";
 
 const sampleScripts = [
   {
@@ -97,11 +97,9 @@ function simulatePython(code: string): string {
     const printMatch = line.match(/^print\s*\((.*)\)\s*$/);
     if (printMatch) {
       let content = printMatch[1];
-      // Handle f-strings simply
       content = content.replace(/f"([^"]*)"/, (_, inner) => {
         return '"' + inner.replace(/\{([^}]+)\}/g, (__, expr) => String(evalExpr(expr))) + '"';
       });
-      // Handle multiple arguments
       const parts = [];
       let current = "";
       let depth = 0;
@@ -145,7 +143,6 @@ function simulatePython(code: string): string {
     const assignMatch = line.match(/^(\w+)\s*=\s*(.+)$/);
     if (assignMatch) {
       const [, varName, valExpr] = assignMatch;
-      // Handle list literal
       if (valExpr.trim().startsWith("[")) {
         try {
           vars[varName] = evalExpr(valExpr);
@@ -173,7 +170,6 @@ const Playground = () => {
   const handleRun = () => {
     setIsRunning(true);
     setOutput("");
-    // Simulate execution delay
     setTimeout(() => {
       try {
         const result = simulatePython(code);
@@ -192,24 +188,30 @@ const Playground = () => {
   };
 
   return (
-    <div className="min-h-screen">
-      <div className="container mx-auto px-4 py-10 max-w-4xl">
-        <h1 className="font-heading text-3xl font-black text-center mb-2">
-          <Code2 className="inline mr-2 text-primary" size={28} />
+    <div className="min-h-screen py-10 relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute top-0 right-10 w-96 h-96 bg-secondary/10 rounded-full blur-3xl -z-10" />
+      <div className="absolute bottom-20 left-10 w-64 h-64 bg-primary/20 rounded-full blur-3xl -z-10" />
+
+      <div className="container mx-auto px-4 max-w-5xl relative z-10">
+        <h1 className="font-heading text-4xl mb-3 font-black text-center text-primary drop-shadow-sm">
+          <Code2 className="inline mr-3 -translate-y-1" size={40} />
           Coding Playground
         </h1>
-        <p className="text-center text-muted-foreground mb-6 font-semibold">Write and run Python code</p>
+        <p className="text-center text-primary/70 mb-10 font-bold text-lg">Write and run Python code instantly!</p>
 
-        <MentorBubble message="Try modifying the code and hit Run! Experiment to learn faster. 🚀" className="mb-6" />
+        <div className="mb-8 flex justify-center">
+          <CharacterFeedback character="doraemon" message="Try modifying the code and hit Run! Experimenting is the best way to learn! 🚀" />
+        </div>
 
         {/* Sample scripts */}
-        <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+        <div className="flex gap-3 mb-6 overflow-x-auto pb-2 justify-center">
           {sampleScripts.map((s) => (
             <button
               key={s.label}
               onClick={() => { setCode(s.code); setOutput(""); }}
-              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all border border-border ${
-                code === s.code ? "bg-primary text-primary-foreground" : "bg-card hover:bg-doraemon-light-blue text-muted-foreground"
+              className={`px-5 py-2.5 rounded-2xl text-sm font-black whitespace-nowrap transition-all border-4 shadow-sm hover:-translate-y-0.5 ${
+                code === s.code ? "bg-primary border-primary text-white scale-[1.02] ring-2 ring-primary ring-offset-2" : "bg-white border-primary/20 text-primary hover:border-primary/50"
               }`}
             >
               {s.label}
@@ -217,21 +219,21 @@ const Playground = () => {
           ))}
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-4">
+        <div className="grid lg:grid-cols-2 gap-6">
           {/* Editor */}
           <motion.div
-            className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden"
+            className="bg-[#1E1E2E] rounded-3xl border-4 border-primary/20 shadow-xl overflow-hidden flex flex-col"
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
           >
-            <div className="flex items-center justify-between bg-muted px-4 py-2 border-b border-border">
-              <span className="text-xs font-bold text-muted-foreground">📝 Editor — Python</span>
-              <div className="flex gap-2">
-                <button onClick={handleCopy} className="text-muted-foreground hover:text-primary transition-colors">
-                  {copied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
+            <div className="flex items-center justify-between bg-[#11111B] px-5 py-3 border-b-2 border-white/10">
+              <span className="text-xs font-black text-secondary tracking-wider uppercase">📝 Editor — Python</span>
+              <div className="flex gap-4">
+                <button onClick={handleCopy} className="text-white/50 hover:text-white transition-colors" title="Copy code">
+                  {copied ? <Check size={16} className="text-success" /> : <Copy size={16} />}
                 </button>
-                <button onClick={() => { setCode(""); setOutput(""); }} className="text-muted-foreground hover:text-accent transition-colors">
-                  <RotateCcw size={14} />
+                <button onClick={() => { setCode(""); setOutput(""); }} className="text-white/50 hover:text-destructive transition-colors" title="Clear code">
+                  <RotateCcw size={16} />
                 </button>
               </div>
             </div>
@@ -239,36 +241,37 @@ const Playground = () => {
               value={code}
               onChange={(e) => setCode(e.target.value)}
               spellCheck={false}
-              className="w-full h-72 bg-[#1e1e2e] text-[#cdd6f4] font-mono text-sm p-4 resize-none focus:outline-none leading-relaxed"
+              className="w-full flex-1 bg-transparent text-[#cdd6f4] font-mono text-sm sm:text-base p-6 resize-none focus:outline-none leading-relaxed"
               placeholder="# Write your Python code here..."
+              style={{ minHeight: "350px" }}
             />
           </motion.div>
 
           {/* Output */}
           <motion.div
-            className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden"
+            className="bg-[#1E1E2E] rounded-3xl border-4 border-primary/20 shadow-xl overflow-hidden flex flex-col"
             initial={{ opacity: 0, x: 10 }}
             animate={{ opacity: 1, x: 0 }}
           >
-            <div className="flex items-center justify-between bg-muted px-4 py-2 border-b border-border">
-              <span className="text-xs font-bold text-muted-foreground">📤 Output</span>
-              {isRunning && <span className="text-xs font-bold text-primary animate-pulse">Running...</span>}
+            <div className="flex items-center justify-between bg-[#11111B] px-5 py-3 border-b-2 border-white/10">
+              <span className="text-xs font-black text-secondary tracking-wider uppercase">📤 Output</span>
+              {isRunning && <span className="text-xs font-black text-secondary animate-pulse">Running...</span>}
             </div>
-            <pre className="w-full h-72 bg-[#1e1e2e] text-[#a6e3a1] font-mono text-sm p-4 overflow-auto whitespace-pre-wrap">
-              {output || "Click 'Run' to execute your code..."}
+            <pre className="w-full flex-1 bg-transparent text-[#a6e3a1] font-mono text-sm sm:text-base p-6 overflow-auto whitespace-pre-wrap" style={{ minHeight: "350px" }}>
+              {output || "Click 'Run Code' to see the output here..."}
             </pre>
           </motion.div>
         </div>
 
         {/* Run button */}
-        <div className="mt-4 text-center">
+        <div className="mt-8 text-center pt-4">
           <button
             onClick={handleRun}
             disabled={isRunning || !code.trim()}
-            className="inline-flex items-center gap-2 bg-green-500 text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-green-600 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-40 disabled:hover:translate-y-0"
+            className="inline-flex items-center justify-center gap-2 bg-success text-white px-10 py-4 rounded-3xl font-black text-xl hover:shadow-lg hover:-translate-y-1 transition-all disabled:opacity-50 disabled:hover:translate-y-0 outline outline-2 outline-offset-2 outline-transparent hover:outline-success/50"
           >
-            <Play size={16} />
-            {isRunning ? "Running..." : "Run Code"}
+            <Play size={24} />
+            {isRunning ? "Executing..." : "Run Code"}
           </button>
         </div>
       </div>

@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { BookOpen, ChevronRight, Brain, GitBranch, TrendingUp, Layers, CheckCircle2, Lock, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
-import doraemonImg from "@/assets/doraemon.png";
-import MentorBubble from "@/components/MentorBubble";
+import CharacterFeedback from "@/components/CharacterFeedback";
 import { useProgress } from "@/hooks/use-progress";
 
 interface Module {
@@ -56,9 +55,9 @@ const modules: Module[] = [
 
 const levels = ["Beginner", "Intermediate", "Advanced"] as const;
 const levelColors: Record<string, string> = {
-  Beginner: "text-green-500 bg-green-500/10 border-green-500/30",
-  Intermediate: "text-yellow-500 bg-yellow-500/10 border-yellow-500/30",
-  Advanced: "text-purple-500 bg-purple-500/10 border-purple-500/30",
+  Beginner: "text-green-500 bg-green-500/10 border-green-500/30 shadow-green-500/20",
+  Intermediate: "text-doraemon-yellow bg-doraemon-yellow/10 border-doraemon-yellow/30 shadow-doraemon-yellow/20",
+  Advanced: "text-purple-500 bg-purple-500/10 border-purple-500/30 shadow-purple-500/20",
 };
 
 const Learn = () => {
@@ -74,6 +73,7 @@ const Learn = () => {
     if (idx === 0) return true;
     const prevLevel = levels[idx - 1];
     const prevModules = getModulesForLevel(prevLevel);
+    // User progress stores array of IDs of completed modules.
     return prevModules.every((m) => progress.modulesCompleted.includes(m.id));
   };
 
@@ -103,19 +103,31 @@ const Learn = () => {
   const currentLevelUnlocked = isLevelUnlocked(selectedLevel);
 
   return (
-    <div className="min-h-screen">
-      <div className="container mx-auto px-4 py-10">
-        <h1 className="font-heading text-3xl md:text-4xl font-black text-center mb-2">
-          <BookOpen className="inline mr-2 text-primary" size={28} />
+    <div className="min-h-screen py-10 relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute top-20 left-10 w-32 h-32 bg-white/40 rounded-full blur-3xl -z-10 animate-pulse" />
+      <div className="absolute bottom-40 right-20 w-64 h-64 bg-primary/20 rounded-full blur-3xl -z-10" />
+
+      <div className="container mx-auto px-4 relative z-10">
+        <h1 className="font-heading text-4xl md:text-5xl font-black text-center mb-3 text-primary drop-shadow-sm">
+          <BookOpen className="inline mr-3 -translate-y-1" size={40} />
           Learning Modules
         </h1>
-        <p className="text-center text-muted-foreground mb-2 font-semibold">Master AI concepts step by step</p>
-        <p className="text-center text-sm text-primary font-bold mb-6">
-          {completedCount} / {modules.length} modules completed
-        </p>
+        <p className="text-center text-primary/70 mb-4 font-bold text-lg">Master AI concepts step by step with Doraemon!</p>
+        
+        {/* Playful Progress Indication */}
+        <div className="max-w-xs mx-auto bg-white rounded-full p-1 border-2 border-primary/20 shadow-sm flex items-center mb-8 relative overflow-hidden">
+          <div 
+            className="absolute left-0 top-0 bottom-0 bg-secondary rounded-full transition-all duration-1000 ease-out"
+            style={{ width: `${(completedCount / modules.length) * 100}%` }}
+          />
+          <div className="relative z-10 flex-1 text-center font-black text-sm text-foreground py-1">
+            {completedCount} / {modules.length} Completed
+          </div>
+        </div>
 
         {/* Level selector */}
-        <div className="flex justify-center gap-3 mb-6 flex-wrap">
+        <div className="flex justify-center gap-3 mb-8 flex-wrap">
           {levels.map((level) => {
             const unlocked = isLevelUnlocked(level);
             const lp = getLevelProgress(level);
@@ -130,42 +142,36 @@ const Learn = () => {
                   }
                 }}
                 disabled={!unlocked}
-                className={`relative px-5 py-3 rounded-xl border-2 font-bold text-sm transition-all ${
+                className={`relative px-6 py-3.5 rounded-2xl border-4 font-black text-sm transition-all shadow-md transform hover:-translate-y-1 ${
                   selectedLevel === level && unlocked
-                    ? levelColors[level] + " shadow-md"
+                    ? levelColors[level]
                     : !unlocked
-                      ? "border-border bg-muted text-muted-foreground opacity-50 cursor-not-allowed"
-                      : "border-border bg-card hover:bg-muted text-muted-foreground"
+                      ? "border-primary/10 bg-white/50 text-muted-foreground opacity-70 cursor-not-allowed hover:translate-y-0"
+                      : "border-primary/20 bg-white hover:border-primary/40 text-primary/70"
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  {!unlocked && <Lock size={14} />}
+                  {!unlocked && <Lock size={16} className="text-muted-foreground" />}
                   {level}
-                  <span className="text-xs opacity-70">({lp.completed}/{lp.total})</span>
+                  <span className="text-xs bg-white/50 px-2 py-0.5 rounded-full border border-current/10 ml-1">
+                    {lp.completed}/{lp.total}
+                  </span>
                 </div>
-                {unlocked && lp.pct > 0 && (
-                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-muted rounded-b-xl overflow-hidden">
-                    <div
-                      className={`h-full rounded-b-xl ${level === "Beginner" ? "bg-green-500" : level === "Intermediate" ? "bg-yellow-500" : "bg-purple-500"}`}
-                      style={{ width: `${lp.pct}%` }}
-                    />
-                  </div>
-                )}
               </button>
             );
           })}
         </div>
 
         {!currentLevelUnlocked ? (
-          <div className="text-center py-16">
-            <Lock className="mx-auto text-muted-foreground mb-4" size={48} />
-            <h2 className="font-heading text-xl font-bold mb-2">Level Locked</h2>
-            <p className="text-muted-foreground text-sm">Complete all modules in the previous level to unlock this one.</p>
+          <div className="text-center py-20 bg-white rounded-3xl border-4 border-primary/10 shadow-xl max-w-2xl mx-auto">
+            <Lock className="mx-auto text-primary/30 mb-6" size={64} />
+            <h2 className="font-heading text-2xl font-black mb-3 text-primary">Level Locked!</h2>
+            <p className="text-primary/70 font-bold max-w-sm mx-auto">You need to master all the modules in the previous level to unlock this one.</p>
           </div>
         ) : (
-          <div className="flex flex-col lg:flex-row gap-6">
-            {/* Sidebar */}
-            <div className="lg:w-64 flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0">
+          <div className="flex flex-col lg:flex-row gap-6 max-w-6xl mx-auto">
+            {/* Sidebar Modules List */}
+            <div className="lg:w-72 flex lg:flex-col gap-3 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 px-1">
               {filteredModules.map((m) => {
                 const idx = modules.indexOf(m);
                 const done = progress.modulesCompleted.includes(m.id);
@@ -173,58 +179,70 @@ const Learn = () => {
                   <button
                     key={m.id}
                     onClick={() => setActive(idx)}
-                    className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${
+                    className={`flex items-center gap-3 px-5 py-4 rounded-2xl text-sm font-black whitespace-nowrap transition-all border-2 shadow-sm ${
                       active === idx
-                        ? "bg-primary text-primary-foreground shadow-md"
-                        : "bg-card border border-border text-muted-foreground hover:bg-doraemon-light-blue"
+                        ? "bg-primary border-primary text-white scale-[1.02] shadow-md"
+                        : "bg-white border-primary/10 text-primary/70 hover:border-primary/30 hover:shadow-md"
                     }`}
                   >
-                    {done ? <CheckCircle2 size={16} className={active === idx ? "text-primary-foreground" : "text-green-500"} /> : <m.icon size={16} />}
+                    <div className={`p-1.5 rounded-full ${active === idx ? "bg-white/20" : "bg-primary/5"}`}>
+                      {done ? <CheckCircle2 size={16} className={active === idx ? "text-white" : "text-green-500"} /> : <m.icon size={16} />}
+                    </div>
                     {m.title}
                   </button>
                 );
               })}
             </div>
 
-            {/* Content */}
+            {/* Content Area */}
             <motion.div
               key={active}
-              className="flex-1 bg-card rounded-2xl border border-border p-6 md:p-8 shadow-sm"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
+              className="flex-1 bg-white rounded-3xl border-4 border-primary/10 p-6 md:p-10 shadow-xl relative"
+              initial={{ opacity: 0, scale: 0.98, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-                <h2 className="font-heading text-2xl font-bold flex items-center gap-2">
-                  <mod.icon className="text-primary" size={24} />
+              <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
+                <h2 className="font-heading text-3xl font-black flex items-center gap-3 text-foreground">
+                  <div className={`p-2.5 rounded-2xl ${levelColors[mod.level].split(" ")[1]}`}>
+                    <mod.icon className={active ? "text-current" : "text-primary"} size={28} />
+                  </div>
                   {mod.title}
                 </h2>
-                <div className="flex items-center gap-2">
-                  <span className={`text-xs font-bold px-2 py-1 rounded-lg border ${levelColors[mod.level]}`}>{mod.level}</span>
+                <div className="flex items-center gap-3">
+                  <span className={`text-xs font-black px-3 py-1.5 rounded-xl border-2 ${levelColors[mod.level].split(" ").slice(0, 3).join(" ")}`}>
+                    {mod.level}
+                  </span>
                   {isModuleCompleted && (
-                    <span className="flex items-center gap-1 text-green-500 text-sm font-bold">
-                      <CheckCircle2 size={16} /> Done
+                    <span className="flex items-center gap-1.5 text-green-600 bg-green-50 px-3 py-1.5 rounded-xl border-2 border-green-200 text-sm font-black">
+                      <CheckCircle2 size={16} /> Completed
                     </span>
                   )}
                 </div>
               </div>
 
-              <div className="space-y-5">
-                <div>
-                  <h3 className="text-sm font-bold text-primary uppercase tracking-wide mb-1">Concept</h3>
-                  <p className="text-foreground leading-relaxed">{mod.concept}</p>
+              <div className="space-y-8">
+                <div className="bg-[#E6F7FF] rounded-2xl p-6 border-2 border-primary/20 relative">
+                  <div className="absolute -top-3 left-6 bg-primary text-white font-black text-xs px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                    Concept
+                  </div>
+                  <p className="text-foreground leading-relaxed font-semibold text-lg">{mod.concept}</p>
                 </div>
-                <div>
-                  <h3 className="text-sm font-bold text-doraemon-yellow uppercase tracking-wide mb-1">Real-World Example</h3>
-                  <p className="text-foreground leading-relaxed">{mod.example}</p>
+                
+                <div className="bg-[#FFF9E6] rounded-2xl p-6 border-2 border-secondary/30 relative">
+                  <div className="absolute -top-3 left-6 bg-secondary text-secondary-foreground font-black text-xs px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                    Real-World Example
+                  </div>
+                  <p className="text-foreground leading-relaxed font-semibold text-lg">{mod.example}</p>
                 </div>
+                
                 <div>
-                  <h3 className="text-sm font-bold text-success uppercase tracking-wide mb-1">Visual Diagram</h3>
-                  <div className="bg-doraemon-light-blue rounded-xl px-5 py-4 font-mono text-sm text-primary font-bold flex items-center gap-2 flex-wrap">
+                  <h3 className="text-sm font-black text-success uppercase tracking-widest pl-2 mb-2">Visual Diagram</h3>
+                  <div className="bg-green-50 rounded-2xl px-6 py-5 border-2 border-green-200 font-mono text-sm text-green-700 font-bold flex items-center gap-3 flex-wrap">
                     {mod.diagram.split("→").map((part, i, arr) => (
                       <span key={i} className="flex items-center gap-2">
-                        <span className="bg-card rounded-lg px-3 py-1.5 border border-primary/20">{part.trim()}</span>
-                        {i < arr.length - 1 && <ChevronRight size={16} className="text-primary" />}
+                        <span className="bg-white rounded-xl px-4 py-2 border-2 border-green-300 shadow-sm">{part.trim()}</span>
+                        {i < arr.length - 1 && <ChevronRight size={20} className="text-success" />}
                       </span>
                     ))}
                   </div>
@@ -232,33 +250,33 @@ const Learn = () => {
               </div>
 
               {/* Action buttons */}
-              <div className="mt-6 flex flex-wrap gap-3">
+              <div className="mt-10 flex flex-wrap gap-4 pt-6 border-t-2 border-primary/10">
                 {!isModuleCompleted && (
                   <button
                     onClick={handleMarkComplete}
-                    className="inline-flex items-center gap-2 bg-green-500 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-green-600 hover:shadow-lg transition-all"
+                    className="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 bg-success text-white px-6 py-3.5 rounded-2xl font-black text-lg hover:shadow-lg hover:-translate-y-0.5 transition-all outline outline-2 outline-offset-2 outline-transparent hover:outline-success/50"
                   >
-                    <CheckCircle2 size={16} /> Mark as Complete
+                    <CheckCircle2 size={20} /> Mark as Complete
                   </button>
                 )}
                 {filteredModules.indexOf(mod) < filteredModules.length - 1 && (
                   <button
                     onClick={handleNextTopic}
-                    className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-5 py-2.5 rounded-xl font-bold hover:shadow-lg transition-all"
+                    className="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 bg-primary text-white px-6 py-3.5 rounded-2xl font-black text-lg hover:shadow-lg hover:-translate-y-0.5 transition-all outline outline-2 outline-offset-2 outline-transparent hover:outline-primary/50"
                   >
-                    Next Topic <ChevronRight size={16} />
+                    Next Topic <ChevronRight size={20} />
                   </button>
                 )}
               </div>
 
-              {/* Mentor */}
-              <div className="mt-6 flex items-end gap-3">
-                <img src={doraemonImg} alt="Mentor" className="w-14 h-14 object-contain animate-bounce-gentle" />
-                <div className="bg-doraemon-light-blue rounded-2xl rounded-bl-none px-4 py-2 text-sm font-semibold border border-primary/20">
-                  {isModuleCompleted
-                    ? `Great! You've completed ${mod.title.toLowerCase()}! Move to the next one! 🎉`
-                    : `Great topic! Understanding ${mod.title.toLowerCase()} is key to your AI journey! 💡`}
-                </div>
+              {/* Doraemon Feedback Area */}
+              <div className="mt-8">
+                <CharacterFeedback 
+                  character="doraemon"
+                  message={isModuleCompleted
+                    ? `Great job! You've successfully completed ${mod.title}! Move to the next one! 🎉`
+                    : `Pay attention! Understanding ${mod.title} is a critical step in your AI journey! 💡`}
+                />
               </div>
             </motion.div>
           </div>
