@@ -3,6 +3,7 @@ import { Gamepad2, RotateCcw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import doraemonImg from "@/assets/doraemon.png";
 import MentorBubble from "@/components/MentorBubble";
+import { useProgress } from "@/hooks/use-progress";
 
 interface TreeNode {
   question: string;
@@ -31,6 +32,7 @@ const tree: TreeNode = {
 const MiniGame = () => {
   const [node, setNode] = useState<TreeNode | string>(tree);
   const [path, setPath] = useState<string[]>([]);
+  const { completeGame } = useProgress();
 
   const isResult = typeof node === "string";
   const current = node as TreeNode;
@@ -39,6 +41,10 @@ const MiniGame = () => {
     const next = choice === "yes" ? current.yes : current.no;
     setPath((p) => [...p, `${current.question} → ${choice.toUpperCase()}`]);
     setNode(next);
+    // If the next node is a result string, mark game complete
+    if (typeof next === "string") {
+      completeGame();
+    }
   };
 
   const reset = () => {
@@ -82,7 +88,8 @@ const MiniGame = () => {
             >
               <div className="text-6xl mb-4">{(node as string).split(" ")[0]}</div>
               <h2 className="font-heading text-2xl font-bold mb-2">{node as string}</h2>
-              <p className="text-muted-foreground text-sm mb-6">The decision tree predicted the fruit based on your answers!</p>
+              <p className="text-muted-foreground text-sm mb-2">The decision tree predicted the fruit based on your answers!</p>
+              <p className="text-xs text-green-500 font-semibold mb-6">✅ Game progress saved to Dashboard</p>
               <button onClick={reset} className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-2.5 rounded-xl font-bold hover:shadow-lg transition-all">
                 <RotateCcw size={16} /> Play Again
               </button>

@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { BookOpen, ChevronRight, Brain, GitBranch, TrendingUp, Layers } from "lucide-react";
+import { BookOpen, ChevronRight, Brain, GitBranch, TrendingUp, Layers, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
 import doraemonImg from "@/assets/doraemon.png";
 import MentorBubble from "@/components/MentorBubble";
+import { useProgress } from "@/hooks/use-progress";
 
 const modules = [
   {
@@ -41,7 +42,23 @@ const modules = [
 
 const Learn = () => {
   const [active, setActive] = useState(0);
+  const { progress, completeModule } = useProgress();
   const mod = modules[active];
+
+  const handleMarkComplete = () => {
+    completeModule(mod.id);
+  };
+
+  const handleNextTopic = () => {
+    // Mark current as complete and advance
+    completeModule(mod.id);
+    if (active < modules.length - 1) {
+      setActive(active + 1);
+    }
+  };
+
+  const isModuleCompleted = progress.modulesCompleted.includes(mod.id);
+  const completedCount = progress.modulesCompleted.length;
 
   return (
     <div className="min-h-screen">
@@ -50,25 +67,31 @@ const Learn = () => {
           <BookOpen className="inline mr-2 text-primary" size={28} />
           Learning Modules
         </h1>
-        <p className="text-center text-muted-foreground mb-8 font-semibold">Master AI concepts step by step</p>
+        <p className="text-center text-muted-foreground mb-2 font-semibold">Master AI concepts step by step</p>
+        <p className="text-center text-sm text-primary font-bold mb-8">
+          {completedCount} / {modules.length} modules completed
+        </p>
 
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Sidebar */}
           <div className="lg:w-64 flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0">
-            {modules.map((m, i) => (
-              <button
-                key={m.id}
-                onClick={() => setActive(i)}
-                className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${
-                  active === i
-                    ? "bg-primary text-primary-foreground shadow-md"
-                    : "bg-card border border-border text-muted-foreground hover:bg-doraemon-light-blue"
-                }`}
-              >
-                <m.icon size={16} />
-                {m.title}
-              </button>
-            ))}
+            {modules.map((m, i) => {
+              const done = progress.modulesCompleted.includes(m.id);
+              return (
+                <button
+                  key={m.id}
+                  onClick={() => setActive(i)}
+                  className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${
+                    active === i
+                      ? "bg-primary text-primary-foreground shadow-md"
+                      : "bg-card border border-border text-muted-foreground hover:bg-doraemon-light-blue"
+                  }`}
+                >
+                  {done ? <CheckCircle2 size={16} className={active === i ? "text-primary-foreground" : "text-green-500"} /> : <m.icon size={16} />}
+                  {m.title}
+                </button>
+              );
+            })}
           </div>
 
           {/* Content */}
@@ -79,10 +102,17 @@ const Learn = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <h2 className="font-heading text-2xl font-bold mb-4 flex items-center gap-2">
-              <mod.icon className="text-primary" size={24} />
-              {mod.title}
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-heading text-2xl font-bold flex items-center gap-2">
+                <mod.icon className="text-primary" size={24} />
+                {mod.title}
+              </h2>
+              {isModuleCompleted && (
+                <span className="flex items-center gap-1 text-green-500 text-sm font-bold">
+                  <CheckCircle2 size={16} /> Completed
+                </span>
+              )}
+            </div>
 
             <div className="space-y-5">
               <div>
@@ -106,11 +136,33 @@ const Learn = () => {
               </div>
             </div>
 
+            {/* Action buttons */}
+            <div className="mt-6 flex flex-wrap gap-3">
+              {!isModuleCompleted && (
+                <button
+                  onClick={handleMarkComplete}
+                  className="inline-flex items-center gap-2 bg-green-500 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-green-600 hover:shadow-lg transition-all"
+                >
+                  <CheckCircle2 size={16} /> Mark as Complete
+                </button>
+              )}
+              {active < modules.length - 1 && (
+                <button
+                  onClick={handleNextTopic}
+                  className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-5 py-2.5 rounded-xl font-bold hover:shadow-lg transition-all"
+                >
+                  Next Topic <ChevronRight size={16} />
+                </button>
+              )}
+            </div>
+
             {/* Mentor */}
             <div className="mt-6 flex items-end gap-3">
               <img src={doraemonImg} alt="Mentor" className="w-14 h-14 object-contain animate-bounce-gentle" />
               <div className="bg-doraemon-light-blue rounded-2xl rounded-bl-none px-4 py-2 text-sm font-semibold border border-primary/20">
-                Great topic! Understanding {mod.title.toLowerCase()} is key to your AI journey! 💡
+                {isModuleCompleted
+                  ? `Great! You've completed ${mod.title.toLowerCase()}! Move to the next one! 🎉`
+                  : `Great topic! Understanding ${mod.title.toLowerCase()} is key to your AI journey! 💡`}
               </div>
             </div>
           </motion.div>

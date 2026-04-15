@@ -4,8 +4,19 @@ import { motion, AnimatePresence } from "framer-motion";
 import nobitaImg from "@/assets/nobita.png";
 import dekisugiImg from "@/assets/dekisugi.png";
 import MentorBubble from "@/components/MentorBubble";
+import { useProgress } from "@/hooks/use-progress";
 
 const questions = [
+  {
+    q: "What is supervised learning?",
+    options: [
+      "A model trained using labeled data",
+      "Random guessing",
+      "Manual programming",
+      "Hardware training",
+    ],
+    correct: 0,
+  },
   {
     q: "What is Machine Learning?",
     options: [
@@ -27,16 +38,6 @@ const questions = [
     correct: 1,
   },
   {
-    q: "What is overfitting?",
-    options: [
-      "Model performs well on all data",
-      "Model memorizes training data but fails on new data",
-      "Model is too simple",
-      "Model has no parameters",
-    ],
-    correct: 1,
-  },
-  {
     q: "Which is an example of classification?",
     options: [
       "Predicting house price",
@@ -54,21 +55,35 @@ const Quiz = () => {
   const [score, setScore] = useState(0);
   const [answered, setAnswered] = useState(false);
   const [finished, setFinished] = useState(false);
+  const { setQuizScore } = useProgress();
 
   const handleSubmit = () => {
     if (selected === null) return;
     setAnswered(true);
-    if (selected === questions[current].correct) setScore((s) => s + 1);
+    if (selected === questions[current].correct) {
+      setScore((s) => s + 1);
+    }
   };
 
   const handleNext = () => {
     if (current + 1 >= questions.length) {
+      // Calculate final score (include current answer)
+      const finalScore = selected === questions[current].correct ? score : score;
+      setQuizScore(finalScore, questions.length);
       setFinished(true);
     } else {
       setCurrent((c) => c + 1);
       setSelected(null);
       setAnswered(false);
     }
+  };
+
+  const handleRetry = () => {
+    setCurrent(0);
+    setSelected(null);
+    setAnswered(false);
+    setScore(0);
+    setFinished(false);
   };
 
   const isCorrect = selected === questions[current]?.correct;
@@ -86,11 +101,12 @@ const Quiz = () => {
             {score >= 3 ? "Excellent Work! 🎉" : "Keep Practicing! 💪"}
           </h2>
           <p className="text-3xl font-black text-primary mb-2">{score}/{questions.length}</p>
-          <p className="text-muted-foreground text-sm mb-6">
+          <p className="text-muted-foreground text-sm mb-4">
             {score >= 3 ? "You're mastering AI concepts!" : "Review the Learn section and try again."}
           </p>
+          <p className="text-xs text-green-500 font-semibold mb-6">✅ Score saved to your Dashboard</p>
           <button
-            onClick={() => { setCurrent(0); setSelected(null); setAnswered(false); setScore(0); setFinished(false); }}
+            onClick={handleRetry}
             className="bg-primary text-primary-foreground px-6 py-2.5 rounded-xl font-bold hover:shadow-lg transition-all"
           >
             Retry Quiz
@@ -160,7 +176,7 @@ const Quiz = () => {
                 />
                 <div className={`flex items-center gap-2 text-sm font-bold ${isCorrect ? "text-success" : "text-accent"}`}>
                   {isCorrect ? <CheckCircle2 size={18} /> : <XCircle size={18} />}
-                  {isCorrect ? "Great job! That's correct!" : "Oops! That's not right. Keep learning!"}
+                  {isCorrect ? "Correct answer! Great job!" : "Incorrect answer. Keep learning!"}
                 </div>
               </motion.div>
             )}
