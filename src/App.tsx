@@ -10,6 +10,10 @@ import Quiz from "./pages/Quiz";
 import MiniGame from "./pages/MiniGame";
 import FailureLab from "./pages/FailureLab";
 import Dashboard from "./pages/Dashboard";
+import Login from "./pages/Login";
+import Playground from "./pages/Playground";
+import Simulation from "./pages/Simulation";
+import Leaderboard from "./pages/Leaderboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,8 +30,12 @@ const App = () => (
           <Route path="/learn" element={<Learn />} />
           <Route path="/quiz" element={<Quiz />} />
           <Route path="/mini-game" element={<MiniGame />} />
+          <Route path="/playground" element={<Playground />} />
+          <Route path="/simulation" element={<Simulation />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/failure-lab" element={<FailureLab />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/login" element={<Login />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

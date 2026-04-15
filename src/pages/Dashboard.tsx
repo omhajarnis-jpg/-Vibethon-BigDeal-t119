@@ -1,34 +1,37 @@
-import { LayoutDashboard, BookOpen, HelpCircle, Trophy, Star, Gamepad2, AlertTriangle, RotateCcw } from "lucide-react";
+import { LayoutDashboard, BookOpen, HelpCircle, Trophy, Star, Gamepad2, AlertTriangle, RotateCcw, FlaskConical, Code2 } from "lucide-react";
 import { motion } from "framer-motion";
 import shizukaImg from "@/assets/shizuka.png";
 import { useProgress } from "@/hooks/use-progress";
+import { useAuth } from "@/hooks/use-auth";
 
-const TOTAL_MODULES = 4;
+const TOTAL_MODULES = 6;
 
 const Dashboard = () => {
   const { progress, resetProgress } = useProgress();
+  const { currentUser } = useAuth();
 
   const modulesCompleted = progress.modulesCompleted.length;
   const modulesPct = Math.round((modulesCompleted / TOTAL_MODULES) * 100);
   const quizPct = progress.quizCompleted ? Math.round((progress.quizScore / progress.quizTotal) * 100) : 0;
   const gamePct = progress.gameCompleted ? 100 : 0;
-  const labPct = 0; // Failure lab not tracked yet
+  const simPct = progress.simulationCompleted ? 100 : 0;
 
-  const overallPct = Math.round((modulesPct + quizPct + gamePct + labPct) / 4);
+  const overallPct = Math.round((modulesPct + quizPct + gamePct + simPct) / 4);
 
   const stats = [
-    { label: "Modules Completed", value: `${modulesCompleted} / ${TOTAL_MODULES}`, pct: modulesPct },
-    { label: "Quiz Score", value: progress.quizCompleted ? `${progress.quizScore} / ${progress.quizTotal}` : "Not attempted", pct: quizPct },
-    { label: "Games Played", value: progress.gameCompleted ? `${progress.gamesPlayed}` : "Not played", pct: gamePct },
-    { label: "Labs Completed", value: "0 / 1", pct: labPct },
+    { label: "Modules Completed", value: `${modulesCompleted} / ${TOTAL_MODULES}`, pct: modulesPct, icon: BookOpen },
+    { label: "Quiz Score", value: progress.quizCompleted ? `${progress.quizScore} / ${progress.quizTotal}` : "Not attempted", pct: quizPct, icon: HelpCircle },
+    { label: "Games Played", value: progress.gameCompleted ? `${progress.gamesPlayed} games` : "Not played", pct: gamePct, icon: Gamepad2 },
+    { label: "Simulation", value: progress.simulationCompleted ? "Completed" : "Not started", pct: simPct, icon: FlaskConical },
   ];
 
   const badges = [
     { label: "First Lesson", icon: BookOpen, earned: modulesCompleted >= 1 },
     { label: "Quiz Master", icon: HelpCircle, earned: progress.quizCompleted && progress.quizScore >= 3 },
-    { label: "Game Player", icon: Gamepad2, earned: progress.gameCompleted },
-    { label: "Bug Fixer", icon: AlertTriangle, earned: false },
-    { label: "AI Champion", icon: Trophy, earned: modulesCompleted >= TOTAL_MODULES && progress.quizCompleted && progress.gameCompleted },
+    { label: "Game Champion", icon: Gamepad2, earned: progress.gameCompleted },
+    { label: "AI Fixer", icon: AlertTriangle, earned: progress.simulationCompleted },
+    { label: "Code Runner", icon: Code2, earned: modulesCompleted >= 2 },
+    { label: "AI Champion", icon: Trophy, earned: modulesCompleted >= TOTAL_MODULES && progress.quizCompleted && progress.gameCompleted && progress.simulationCompleted },
   ];
 
   const getMessage = () => {
@@ -46,7 +49,9 @@ const Dashboard = () => {
           <LayoutDashboard className="inline mr-2 text-primary" size={28} />
           Progress Dashboard
         </h1>
-        <p className="text-center text-muted-foreground mb-8 font-semibold">Track your AI learning journey</p>
+        <p className="text-center text-muted-foreground mb-8 font-semibold">
+          {currentUser ? `Welcome, ${currentUser.name}!` : "Track your AI learning journey"}
+        </p>
 
         {/* Shizuka message */}
         <div className="flex items-start gap-3 mb-8">
@@ -89,7 +94,9 @@ const Dashboard = () => {
               transition={{ delay: 0.1 * i }}
             >
               <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-semibold text-muted-foreground">{s.label}</span>
+                <span className="text-sm font-semibold text-muted-foreground flex items-center gap-1.5">
+                  <s.icon size={14} /> {s.label}
+                </span>
                 <span className="font-bold text-foreground">{s.value}</span>
               </div>
               <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden">
@@ -112,7 +119,7 @@ const Dashboard = () => {
           transition={{ delay: 0.3 }}
         >
           <h2 className="font-heading text-lg font-bold mb-4 flex items-center gap-2">
-            <Star className="text-doraemon-yellow" size={20} /> Badges
+            <Star className="text-doraemon-yellow" size={20} /> Achievement Badges
           </h2>
           <div className="flex flex-wrap gap-4">
             {badges.map((b) => (
